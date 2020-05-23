@@ -1,0 +1,9 @@
+{
+  "name": "mapgen",
+  "dependencies": {
+    "canvas": "^2.6.1",
+    "seedrandom": "^3.0.5",
+    "tooloud": "^2.0.4"
+  },
+  "version": "1.0.0"
+}
