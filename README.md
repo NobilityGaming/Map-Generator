@@ -4,12 +4,12 @@ Includes options to generate rivers and lakes.
 
 Comes with API version for server side generation and a UI based generator.
 
-# Example
+# Examples
 
-2048 by 2048 map with the seed "test":
+2048 x 2048 Map:
 
-![alt text](https://github.com/NobilityGaming/Map-Generator/blob/master/test1.png?raw=true)
+![alt text](https://github.com/NobilityGaming/Map-Generator/blob/master/map.png?raw=true)
 
-2048 by 2048 island type map with the seed "test":
+2048 x 2048 Island Map:
 
-![alt text](https://github.com/NobilityGaming/Map-Generator/blob/master/test.png?raw=true)
+![alt text](https://github.com/NobilityGaming/Map-Generator/blob/master/island.png?raw=true)
