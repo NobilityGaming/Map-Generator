@@ -11,12 +11,11 @@ const path = require('path');
 // ########### Server config ###########
 app.use(bodyParser.json({ limit: "75mb" }));    // change this to allow larger image sizes
 
-// ########### Server status endpoint ###########
+// ########### Endpoints ###########
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '/map.html'))
+    res.sendFile(path.join(__dirname, '/ui-generator.html'))
 });
 
-// ########### Endpoints ###########
 app.post('/requestMap', (req, res) => {
     try {
         var dataDecoded = toArrayBuffer(Buffer.from(req.body.data, 'base64'))
