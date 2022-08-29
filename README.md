@@ -1,5 +1,6 @@
 # Map Generator
 A highly customisable simplex noise based map generator with an option for island maps.
+Includes options to generate rivers and lakes.
 
 Comes with API version for server side generation and a UI based generator.
 
