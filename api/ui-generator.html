@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>Map Generator Interface</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <link rel="stylesheet" href="https://openlayers.org/en/v4.6.5/css/ol.css" type="text/css">
+  <script src="https://openlayers.org/en/v4.6.5/build/ol.js" type="text/javascript"></script>
+</head>
+
+<body>
+  <h1>Map Generator Interface</h1>
+  <label for="heightSeed">Height Seed:</label>
+  <input type="text" id="heightSeed" value="map seed">
+  <br>
+  <label for="heightScaleValue">Height Scale:</label>
+  <input type="text" id="heightScaleValue" value="1.925">
+  <br><br>
+  <label for="island">Generate as Island:</label>
+  <input type="checkbox" id="island" checked>
+  <br>
+  <div id="islandDiv">
+    <label for="islandFalloffValue">Island Falloff:</label>
+    <input type="text" id="islandFalloffValue" value="0.5">
+  </div>
+  <br>
+  <label for="river">Generate Rivers:</label>
+  <input type="checkbox" id="river" checked>
+  <br>
+  <div id="riverDiv">
+    <label for="riverSeed">River Seed:</label>
+    <input type="text" id="riverSeed" value="river seed">
+    <br>
+    <label for="riverScaleValue">River Scale:</label>
+    <input type="text" id="riverScaleValue" value="0.05">
+  </div>
+  <br>
+  <label for="lake">Generate Lakes:</label>
+  <input type="checkbox" id="lake" checked>
+  <br>
+  <div id="lakeDiv">
+    <label for="lakeSeed">Lake Seed:</label>
+    <input type="text" id="lakeSeed" value="lake seed">
+    <br>
+    <label for="lakeScaleValue">Lake Scale:</label>
+    <input type="text" id="lakeScaleValue" value="2.5">
+  </div>
+  <br>
+  <label for="advanced">Show Advanced Settings:</label>
+  <input type="checkbox" id="advanced">
+  <br>
+  <div id="advancedDiv" style="display: none">
+    <label for="zoomValue">Zoom:</label>
+    <input type="text" id="zoomValue" value="1.0">
+    <br>
+    <label for="sizeValue">Image Resolution. Lower number = faster generation (MAX 11):</label>
+    <input type="text" id="sizeValue" value="9">
+    <br>
+    <label for="frequencyValue">Noise Frequency:</label>
+    <input type="text" id="frequencyValue" value="1">
+    <br>
+    <label for="gainValue">Noise Gain:</label>
+    <input type="text" id="gainValue" value="0.5">
+    <br>
+    <label for="lacunarityValue">Noise Lacunarity:</label>
+    <input type="text" id="lacunarityValue" value="2">
+    <br>
+    <label for="h1Value">Height 1 Color (HEX):</label>
+    <input type="text" id="h1Value" value="0052FF">
+    <br>
+    <label for="h2Value">Height 2 Color (HEX):</label>
+    <input type="text" id="h2Value" value="006DFF">
+    <br>
+    <label for="h3Value">Height 3 Color (HEX):</label>
+    <input type="text" id="h3Value" value="979549">
+    <br>
+    <label for="h4Value">Height 4 Color (HEX):</label>
+    <input type="text" id="h4Value" value="486200">
+    <br>
+    <label for="h5Value">Height 5 Color (HEX):</label>
+    <input type="text" id="h5Value" value="155900">
+    <br>
+    <label for="h6Value">Height 6 Color (HEX):</label>
+    <input type="text" id="h6Value" value="006207">
+    <br>
+    <label for="h7Value">Height 7 Color (HEX):</label>
+    <input type="text" id="h7Value" value="096B00">
+    <br>
+    <label for="h8Value">Height 8 Color (HEX):</label>
+    <input type="text" id="h8Value" value="3F771B">
+    <br>
+    <label for="h9Value">Height 9 Color (HEX):</label>
+    <input type="text" id="h9Value" value="6E8431">
+    <br>
+    <label for="h10Value">Height 10 Color (HEX):</label>
+    <input type="text" id="h10Value" value="92AA65">
+  </div>
+  <br><br>
+  <input type="button" value="Generate Map" id="generateButton">
+  <br><br>
+  <canvas id="map" height="512" width="512"></canvas>
+</body>
+
+<script>
+  const heightSeedBox = document.getElementById("heightSeed")
+  const riverSeedBox = document.getElementById("riverSeed")
+  const lakeSeedBox = document.getElementById("lakeSeed")
+  const zoomValueBox = document.getElementById("zoomValue")
+  const islandFalloffValueBox = document.getElementById("islandFalloffValue")
+  const heightScaleValueBox = document.getElementById("heightScaleValue")
+  const lakeScaleValueBox = document.getElementById("lakeScaleValue")
+  const riverScaleValueBox = document.getElementById("riverScaleValue")
+  const frequencyValueBox = document.getElementById("frequencyValue")
+  const gainValueBox = document.getElementById("gainValue")
+  const lacunarityValueBox = document.getElementById("lacunarityValue")
+  const sizeValueBox = document.getElementById("sizeValue")
+  const islandCheck = document.getElementById("island")
+  const islandDiv = document.getElementById("islandDiv")
+  const riverCheck = document.getElementById("river")
+  const riverDiv = document.getElementById("riverDiv")
+  const lakeCheck = document.getElementById("lake")
+  const lakeDiv = document.getElementById("lakeDiv")
+  const advancedCheck = document.getElementById("advanced")
+  const advancedDiv = document.getElementById("advancedDiv")
+  const canvas = document.getElementById("map")
+
+  islandCheck.addEventListener("click", toggleIsland)
+  riverCheck.addEventListener("click", toggleRiver)
+  lakeCheck.addEventListener("click", toggleLake)
+  advancedCheck.addEventListener("click", toggleAdvanced)
+  document.getElementById("generateButton").addEventListener("click", generate)
+
+  function generate() {
+    var h1 = document.getElementById("h1Value").value
+    var h2 = document.getElementById("h2Value").value
+    var h3 = document.getElementById("h3Value").value
+    var h4 = document.getElementById("h4Value").value
+    var h5 = document.getElementById("h5Value").value
+    var h6 = document.getElementById("h6Value").value
+    var h7 = document.getElementById("h7Value").value
+    var h8 = document.getElementById("h8Value").value
+    var h9 = document.getElementById("h9Value").value
+    var h10 = document.getElementById("h10Value").value
+    var islandMode = islandCheck.checked
+    var lakeMode = lakeCheck.checked
+    var riverMode = riverCheck.checked
+    var hightSeed = heightSeedBox.value
+    var riverSeed = riverSeedBox.value
+    var lakeSeed = lakeSeedBox.value
+    var zoom = parseFloat(zoomValueBox.value)
+    var islandFalloff = parseFloat(islandFalloffValueBox.value)
+    var heightModifier = parseFloat(heightScaleValueBox.value)
+    var riverScale = parseFloat(riverScaleValueBox.value)
+    var lakeScale = parseFloat(lakeScaleValueBox.value)
+    var octaves = parseInt(sizeValueBox.value)
+    var frequency = parseFloat(frequencyValueBox.value)
+    var gain = parseFloat(gainValueBox.value)
+    var lacunarity = parseFloat(lacunarityValueBox.value)
+    var lenght = Math.pow(2, octaves)
+    var width = Math.pow(2, octaves)
+    canvas.width = width
+    canvas.height = width
+
+    let ctx = canvas.getContext('2d');
+    let imgdata = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    let data = imgdata.data
+    var decoder = new TextDecoder('utf8');
+    var base64 = btoa(decoder.decode(data));
+
+    var body = {
+      'islandMode': islandMode,
+      'lakeMode': lakeMode,
+      'riverMode': riverMode,
+      'hightSeed': hightSeed,
+      'riverSeed': riverSeed,
+      'lakeSeed': lakeSeed,
+      'zoom': zoom,
+      'islandFalloff': islandFalloff,
+      'heightModifier': heightModifier,
+      'riverScale': riverScale,
+      'lakeScale': lakeScale,
+      'octaves': octaves,
+      'frequency': frequency,
+      'gain': gain,
+      'lacunarity': lacunarity,
+      'colors': [h1, h2, h3, h4, h5, h6, h7, h8, h9, h10],
+      'data': base64
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", '/requestMap', false);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function () {
+      if (this.readyState === XMLHttpRequest.DONE && this.status === 200 && this.responseText) {
+        let dataDecoded = new Uint8ClampedArray(atob(xhr.responseText).split("").map(function (c) {
+          return c.charCodeAt(0);
+        }));
+        imgdata.data.set(dataDecoded)
+        ctx.putImageData(imgdata, 0, 0)
+      } else {
+        console.log("Server side error")
+      }
+    }
+    xhr.send(JSON.stringify(body));
+  }
+
+  function toggleIsland() {
+    if (islandCheck.checked) {
+      islandDiv.style.display = "block"
+      islandMode = true
+    } else {
+      islandDiv.style.display = "none"
+      islandMode = false
+    }
+  }
+
+  function toggleRiver() {
+    if (riverCheck.checked) {
+      riverDiv.style.display = "block"
+      riverMode = true
+    } else {
+      riverDiv.style.display = "none"
+      riverMode = false
+    }
+  }
+
+  function toggleLake() {
+    if (lakeCheck.checked) {
+      lakeDiv.style.display = "block"
+      lakeMode = true
+    } else {
+      lakeDiv.style.display = "none"
+      lakeMode = false
+    }
+  }
+
+  function toggleAdvanced() {
+    if (advancedCheck.checked) {
+      advancedDiv.style.display = "block"
+    } else {
+      advancedDiv.style.display = "none"
+    }
+  }
+
+</script>
+
+</html>

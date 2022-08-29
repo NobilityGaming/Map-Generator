@@ -1,0 +1,19 @@
+{
+  "name": "map-generator",
+  "version": "1.0.0",
+  "description": "Server side simplex noise map generator",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "author": "Sebastian Pluta",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.1",
+    "express": "^4.17.1",
+    "socket.io": "^4.4.0",
+    "nodemon": "^2.0.15",
+    "seedrandom": "^3.0.5",
+    "fastnoisejs": "^1.0.1"
+  }
+}
