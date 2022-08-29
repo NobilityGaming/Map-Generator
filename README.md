@@ -1,9 +1,7 @@
-# Map-Generator
-Simplex noise based map generator.
+# Map Generator
+A highly customisable simplex noise based map generator with an option for island maps.
 
-A customisable noise based map generator with an option for island maps.
-
-Node.js Modules used: seedrandom, node-canvas, tooloud
+Comes with API version for server side generation and a UI based generator.
 
 # Example
 

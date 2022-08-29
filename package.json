@@ -1,9 +1,16 @@
 {
-  "name": "mapgen",
+  "name": "map-generator",
+  "version": "1.0.1",
+  "description": "Simplex noise map generator",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "author": "Sebastian Pluta",
+  "license": "ISC",
   "dependencies": {
     "canvas": "^2.6.1",
     "seedrandom": "^3.0.5",
-    "tooloud": "^2.0.4"
-  },
-  "version": "1.0.0"
+    "fastnoisejs": "^1.0.1"
+  }
 }

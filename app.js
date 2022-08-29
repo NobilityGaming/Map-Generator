@@ -3,18 +3,23 @@ const fs = require('fs')
 const seedrandom = require('seedrandom');
 const fastnoise = require('fastnoisejs')
 
-var seed = "test"
-var island = true
-var octaves = 11
+// Generic settings
+var fileName = "map"        // name of the output png file
+var hightSeed = "07684239"  // main map seed
+var riverSeed = "23662342"  // seed of river generation if rivers are enabled
+var lakeSeed = "8745370423" // seed of lake generation if rivers are enabled
+var zoom = 1                // map zoom multiplier
 
-/* The octave count controls lenght, width and frequency so it will always be the same map regardless of the octave count.
-If you want full control over them simply swap them out with the commented code. */ 
-var lenght = Math.pow(2, octaves)       // var lenght = 2048
-var width = Math.pow(2, octaves)        // var width = 2048
-var frequency = 0.001/(lenght/2048)     // var frequency = 0.001
-var gain = 0.5
-var lacunarity = 2
+// Map customization settings
+var lake = true             // toggles lakes
+var rivers = true           // toggles rivers
+var island = false          // toggles island map
+var islandFalloff = 0.5     // lower value = more water around island
+var heightModifier = 1.5    // lower value = more water and less land
+var riverScale = 0.025      // lower value = thinner rivers
+var lakeScale = 2.5         // lower value = more lakes
 
+// Map colors in hex
 var ocean = `0052FF`;
 var shore = `006DFF`;
 var beach = `979549`;
@@ -26,8 +31,17 @@ var hill = `3F771B`;
 var mountain = `6E8431`;
 var top = `92AA65`;
 
+/* The octave count controls lenght, width and frequency so it will always be the same map regardless of the octave count.
+If you want full control over them simply swap them out with the commented code. */
+var octaves = 11
+var lenght = Math.pow(2, octaves)               // var lenght = 2048
+var width = Math.pow(2, octaves)                // var width = 2048
+var frequency = 0.001 / (lenght / 2048 * zoom)  // var frequency = 0.001
+var gain = 0.5
+var lacunarity = 2
+
 const canvas = Canvas.createCanvas(lenght, width);
-const out = fs.createWriteStream(`${seed}.png`)
+const out = fs.createWriteStream(`${fileName}.png`)
 const stream = canvas.createPNGStream()
 const ctx = canvas.getContext('2d');
 var imgdata = ctx.getImageData(0, 0, canvas.width, canvas.height)
@@ -41,14 +55,36 @@ function hexToRgb(hex) {
     return [r, g, b];
 }
 
-var heightseed = seedrandom(seed);
-const noise1 = fastnoise.Create(heightseed.int32())
-noise1.SetNoiseType(fastnoise.SimplexFractal)
-noise1.SetFrequency(frequency)
-noise1.SetFractalOctaves(octaves)
-noise1.SetFractalGain(gain)
-noise1.SetFractalLacunarity(lacunarity)
-noise1.SetFractalType(fastnoise.FBM)
+var heightseed = seedrandom(hightSeed);
+var heightnoise = fastnoise.Create(heightseed.int32())
+heightnoise.SetNoiseType(fastnoise.SimplexFractal)
+heightnoise.SetFrequency(frequency)
+heightnoise.SetFractalOctaves(octaves)
+heightnoise.SetFractalGain(gain)
+heightnoise.SetFractalLacunarity(lacunarity)
+heightnoise.SetFractalType(fastnoise.FBM)
+
+if (rivers) {
+    var riverseed = seedrandom(riverSeed);
+    var rivernoise = fastnoise.Create(riverseed.int32())
+    rivernoise.SetNoiseType(fastnoise.SimplexFractal)
+    rivernoise.SetFrequency(frequency)
+    rivernoise.SetFractalOctaves(octaves)
+    rivernoise.SetFractalGain(gain)
+    rivernoise.SetFractalLacunarity(lacunarity)
+    rivernoise.SetFractalType(fastnoise.FBM)
+}
+
+if (lake) {
+    var lakeseed = seedrandom(lakeSeed);
+    var lakenoise = fastnoise.Create(lakeseed.int32())
+    lakenoise.SetNoiseType(fastnoise.SimplexFractal)
+    lakenoise.SetFrequency(frequency)
+    lakenoise.SetFractalOctaves(octaves)
+    lakenoise.SetFractalGain(gain)
+    lakenoise.SetFractalLacunarity(lacunarity)
+    lakenoise.SetFractalType(fastnoise.FBM)
+}
 
 h1 = [hexToRgb(ocean)[0], hexToRgb(ocean)[1], hexToRgb(ocean)[2]]
 h2 = [hexToRgb(shore)[0], hexToRgb(shore)[1], hexToRgb(shore)[2]]
@@ -68,28 +104,34 @@ for (let x = 0; x < lenght; x++) {
             var a = x - lenght / 2;
             var b = y - width / 2;
             var c = Math.sqrt(a * a + b * b) / lenght / 2
-            mod = 2.5 - (c * 8.5)
-            if (mod > 0.9) {mod = 0.9}
-            if (mod < 0.3) {mod = 0.3}
-            r = ((noise1.GetNoise(x, y)) + 0.275) * mod
+            mod = (2.5 - (c * 8.5)) * islandFalloff
+            if (mod > 0.9) { mod = 0.9 }
+            r = ((heightnoise.GetNoise(x, y)) + (0.275 * heightModifier)) * mod
         }
         else {
-            r = noise1.GetNoise(x, y) + 0.25
+            r = heightnoise.GetNoise(x, y) + (0.25 * heightModifier)
         }
 
-        if (r <= 0.15) {
+        if (rivers) {
+            r1 = rivernoise.GetNoise(x, y)
+        }
+        if (lake) {
+            r2 = lakenoise.GetNoise(x, y) + (0.25 * lakeScale)
+        }
+
+        if (r <= 0.15 || (lake && (r2 <= 0.1))) {
             data[(x + y * lenght) * 4 + 0] = h1[0];
             data[(x + y * lenght) * 4 + 1] = h1[1];
             data[(x + y * lenght) * 4 + 2] = h1[2];
             data[(x + y * lenght) * 4 + 3] = 255;
         }
-        else if (r > 0.15 && r <= 0.25) {
+        else if ((r > 0.15 && r <= 0.25) || (rivers && (r1 > 0 && r1 <= riverScale)) || (lake && (r2 > 0.1 && r2 <= 0.15))) {
             data[(x + y * lenght) * 4 + 0] = h2[0];
             data[(x + y * lenght) * 4 + 1] = h2[1];
             data[(x + y * lenght) * 4 + 2] = h2[2];
             data[(x + y * lenght) * 4 + 3] = 255;
         }
-        else if (r > 0.25 && r <= 0.3) {
+        else if ((r > 0.25 && r <= 0.3)) {
             data[(x + y * lenght) * 4 + 0] = h3[0];
             data[(x + y * lenght) * 4 + 1] = h3[1];
             data[(x + y * lenght) * 4 + 2] = h3[2];
